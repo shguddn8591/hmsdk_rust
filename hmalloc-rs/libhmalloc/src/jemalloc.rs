@@ -1,18 +1,16 @@
 use libc::{c_int, c_uint, c_void, size_t};
 use tikv_jemalloc_sys as je;
 
-// MALLOCX_ARENA(a) = ((int)(a) + 1) << 20
-// MALLOCX_TCACHE_NONE = (-1 << 8)
+// Mirrors C: MALLOCX_ARENA(arena_index) | MALLOCX_TCACHE_NONE
+// Uses the crate-provided macros so flag encoding always matches the
+// linked jemalloc (avoids hand-rolling the bit layout).
 pub fn mallocx_flags(arena: u32) -> c_int {
-    let arena_flag = ((arena as c_int) + 1) << 20;
-    let tcache_none: c_int = -1 << 8;
-    arena_flag | tcache_none
+    je::MALLOCX_ARENA(arena as usize) | je::MALLOCX_TCACHE_NONE
 }
 
-// MALLOCX_ALIGN(a) encodes log2(a) in bits [0..7]
+// Mirrors C: MALLOCX_ALIGN(alignment) | MALLOCX_ARENA(...) | MALLOCX_TCACHE_NONE
 pub fn mallocx_align_flags(arena: u32, alignment: size_t) -> c_int {
-    let align_bits = alignment.trailing_zeros() as c_int;
-    mallocx_flags(arena) | align_bits
+    je::MALLOCX_ALIGN(alignment) | mallocx_flags(arena)
 }
 
 unsafe extern "C" fn extent_alloc(
@@ -24,12 +22,13 @@ unsafe extern "C" fn extent_alloc(
     _commit: *mut bool,
     _arena_ind: c_uint,
 ) -> *mut c_void {
+    // Matches C extent_alloc: hmmap(NULL, size, RW, PRIVATE|ANON, 0, 0)
     crate::alloc::hmmap_raw(
         std::ptr::null_mut(),
         size,
         libc::PROT_READ | libc::PROT_WRITE,
         libc::MAP_PRIVATE | libc::MAP_ANON,
-        -1,
+        0,
         0,
     )
 }
@@ -63,7 +62,7 @@ pub unsafe fn create_arena() -> u32 {
     let hooks_ptr: *mut je::extent_hooks_t = std::ptr::addr_of_mut!(EXTENT_HOOKS);
 
     let err = je::mallctl(
-        b"arenas.create\0".as_ptr() as *const libc::c_char,
+        c"arenas.create".as_ptr(),
         &mut arena_index as *mut _ as *mut c_void,
         &mut unsigned_size,
         &hooks_ptr as *const _ as *mut c_void,
