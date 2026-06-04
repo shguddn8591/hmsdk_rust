@@ -9,16 +9,17 @@
 ## ❌ 남은 작업
 
 ### Phase 1: Linux 런타임 검증
-- [ ] Docker Linux 환경에서 `cargo build -p libhmalloc` 성공 확인
-- [ ] Docker Linux 환경에서 `cargo test -p libhmalloc` 13개 테스트 통과 확인
-- [ ] Docker Linux 환경에서 `cargo build -p hmctl` 성공 확인
-- [ ] `HMALLOC_JEMALLOC=1 cargo test -p libhmalloc` (jemalloc 백엔드) 통과 확인
+- [x] Docker Linux 환경에서 `cargo build -p libhmalloc` 성공 확인
+- [x] Docker Linux 환경에서 `cargo test -p libhmalloc` 13개 테스트 통과 확인
+- [x] Docker Linux 환경에서 `cargo build -p hmctl` 성공 확인
+- [x] `HMALLOC_JEMALLOC=1 cargo test -p libhmalloc` (jemalloc 백엔드) 통과 확인
+      -> jemalloc `create_arena()` 과정에서 발생하는 OnceCell 교착상태(Deadlock) 버그 해결 완료.
 
 ### Phase 2: GitHub Actions CI 추가
-- [ ] `.github/workflows/ci.yml` 작성
-- [ ] Linux 러너 + `apt install libjemalloc-dev libnuma-dev`
-- [ ] `cargo check`, `cargo test`, `cargo clippy` 단계
-- [ ] jemalloc 백엔드 별도 테스트 단계
+- [x] `.github/workflows/ci.yml` 작성
+- [x] Linux 러너 + `apt install libjemalloc-dev libnuma-dev`
+- [x] `cargo check`, `cargo test`, `cargo clippy` 단계
+- [x] jemalloc 백엔드 별도 테스트 단계
 
 ### Phase 3: NUMA 멀티노드 통합 테스트 (optional)
 - [ ] 실제 NUMA 2+ 노드 환경에서 mbind 정책 검증
