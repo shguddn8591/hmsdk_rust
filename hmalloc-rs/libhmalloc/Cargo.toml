@@ -1,0 +1,16 @@
+[package]
+name    = "libhmalloc"
+version = "0.1.0"
+edition = "2021"
+license = "BSD-2-Clause"
+
+[lib]
+name       = "hmalloc"
+crate-type = ["cdylib"]
+
+[dependencies]
+libc             = { workspace = true }
+once_cell        = { workspace = true }
+tikv-jemalloc-sys = "0.5"
+
+[build-dependencies]
