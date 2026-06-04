@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main, feature/rust-hmalloc]
+    paths: ['hmalloc-rs/**']
+  pull_request:
+    branches: [main]
+    paths: ['hmalloc-rs/**']
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libjemalloc-dev libnuma-dev
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Cache cargo registry & build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            hmalloc-rs/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('hmalloc-rs/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Check (compile without linking)
+        working-directory: hmalloc-rs
+        run: cargo check --workspace --tests
+
+      - name: Clippy
+        working-directory: hmalloc-rs
+        run: cargo clippy --workspace --tests -- -D warnings
+
+      - name: Build libhmalloc
+        working-directory: hmalloc-rs
+        run: cargo build -p libhmalloc
+
+      - name: Build hmctl
+        working-directory: hmalloc-rs
+        run: cargo build -p hmctl
+
+      - name: Test libhmalloc (libc backend)
+        working-directory: hmalloc-rs
+        run: cargo test -p libhmalloc
+
+      - name: Test libhmalloc (jemalloc backend)
+        working-directory: hmalloc-rs
+        run: HMALLOC_JEMALLOC=1 cargo test -p libhmalloc

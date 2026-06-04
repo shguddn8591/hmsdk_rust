@@ -9,8 +9,11 @@ pub unsafe fn hmmap_raw(
     fd: c_int,
     offset: off_t,
 ) -> *mut c_void {
-    let s = crate::state::get();
-    hmmap_with_policy(addr, length, prot, flags, fd, offset, s.nodemask, s.mpol_mode, s.maxnode)
+    // Use get_policy() to read NUMA params via Atomics.
+    // Calling state::get() here during arena creation would cause a deadlock
+    // on the OnceCell because extent_alloc runs within init_state.
+    let (nodemask, mpol_mode, maxnode) = crate::state::get_policy();
+    hmmap_with_policy(addr, length, prot, flags, fd, offset, nodemask, mpol_mode, maxnode)
 }
 
 // Parameterised version used by public hmmap() and tests
