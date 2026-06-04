@@ -1,11 +1,5 @@
 use libc::{c_int, c_long, c_uint, c_ulong, c_void, size_t};
 
-#[repr(C)]
-pub struct Bitmask {
-    pub size: c_ulong,
-    pub maskp: *mut c_ulong,
-}
-
 extern "C" {
     pub fn numa_max_possible_node() -> c_int;
     pub fn mbind(
