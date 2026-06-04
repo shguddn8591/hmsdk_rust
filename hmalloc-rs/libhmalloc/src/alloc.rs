@@ -31,12 +31,13 @@ pub unsafe fn hmmap_with_policy(
     }
 
     if nodemask > 0 {
+        // Matches C: mbind(new_addr, length, mpol_mode, &nodemask, maxnode, 0)
         let ret = crate::numa::mbind(
             new_addr,
             length,
             mpol_mode,
             &nodemask as *const u64 as *const libc::c_ulong,
-            maxnode as libc::c_ulong + 1,
+            maxnode as libc::c_ulong,
             0,
         );
         if ret != 0 {
