@@ -1,10 +1,5 @@
-use libc::{c_int, c_void, size_t};
-
-extern "C" {
-    fn haligned_alloc(alignment: size_t, size: size_t) -> *mut c_void;
-    fn hposix_memalign(memptr: *mut *mut c_void, alignment: size_t, size: size_t) -> c_int;
-    fn hfree(ptr: *mut c_void);
-}
+use hmalloc::{haligned_alloc, hfree, hposix_memalign};
+use libc::c_void;
 
 fn is_aligned(ptr: *mut c_void, alignment: usize) -> bool {
     (ptr as usize) % alignment == 0

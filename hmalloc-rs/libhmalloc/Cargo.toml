@@ -6,7 +6,9 @@ license = "BSD-2-Clause"
 
 [lib]
 name       = "hmalloc"
-crate-type = ["cdylib"]
+# cdylib produces libhmalloc.so for LD_PRELOAD / C linking.
+# rlib lets the integration tests link the public API directly.
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 libc             = { workspace = true }

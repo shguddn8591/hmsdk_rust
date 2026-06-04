@@ -1,12 +1,5 @@
-use libc::{c_void, size_t};
-
-extern "C" {
-    fn hmalloc(size: size_t) -> *mut c_void;
-    fn hfree(ptr: *mut c_void);
-    fn hcalloc(nmemb: size_t, size: size_t) -> *mut c_void;
-    fn hrealloc(ptr: *mut c_void, size: size_t) -> *mut c_void;
-    fn hmalloc_usable_size(ptr: *mut c_void) -> size_t;
-}
+use hmalloc::{hcalloc, hfree, hmalloc, hmalloc_usable_size, hrealloc};
+use libc::c_void;
 
 #[test]
 fn hmalloc_basic() {

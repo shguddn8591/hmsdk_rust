@@ -1,16 +1,4 @@
-use libc::{c_int, c_void, size_t};
-
-extern "C" {
-    fn hmmap(
-        addr: *mut c_void,
-        length: size_t,
-        prot: c_int,
-        flags: c_int,
-        fd: c_int,
-        offset: libc::off_t,
-    ) -> *mut c_void;
-    fn hmunmap(addr: *mut c_void, length: size_t) -> c_int;
-}
+use hmalloc::{hmmap, hmunmap};
 
 #[test]
 fn hmmap_anonymous() {
