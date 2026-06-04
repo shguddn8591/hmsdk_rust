@@ -93,16 +93,16 @@ pub unsafe extern "C" fn hposix_memalign(
     if !s.use_jemalloc {
         return libc::posix_memalign(memptr, alignment, size);
     }
-    if alignment < std::mem::size_of::<*mut c_void>() || !alignment.is_power_of_two() {
+    let old_errno = platform::errno();
+    if alignment == 0 || !alignment.is_power_of_two() {
         *memptr = std::ptr::null_mut();
         return libc::EINVAL;
     }
-    let old_errno = platform::errno();
     *memptr = je::mallocx(size, jemalloc::mallocx_align_flags(s.arena_index, alignment));
     if (*memptr).is_null() {
         let ret = platform::errno();
         platform::set_errno(old_errno);
-        return if ret == 0 { libc::ENOMEM } else { ret };
+        return ret;
     }
     0
 }
