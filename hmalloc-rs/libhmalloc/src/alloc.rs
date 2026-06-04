@@ -40,9 +40,9 @@ pub unsafe fn hmmap_with_policy(
             0,
         );
         if ret != 0 {
-            let saved_errno = *libc::__errno_location();
+            let saved_errno = crate::platform::errno();
             libc::munmap(new_addr, length);
-            *libc::__errno_location() = saved_errno;
+            crate::platform::set_errno(saved_errno);
             return std::ptr::null_mut();
         }
     }

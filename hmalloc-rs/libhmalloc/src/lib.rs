@@ -2,12 +2,14 @@ mod alloc;
 mod env;
 mod jemalloc;
 mod numa;
+mod platform;
 mod state;
 
 use libc::{c_int, c_void, off_t, size_t};
 use tikv_jemalloc_sys as je;
 
 // Ensure initialization at .so load time (LD_PRELOAD safety)
+#[cfg(target_os = "linux")]
 #[used]
 #[link_section = ".init_array"]
 static INIT: unsafe extern "C" fn() = {
@@ -75,7 +77,7 @@ pub unsafe extern "C" fn haligned_alloc(alignment: size_t, size: size_t) -> *mut
         return libc::aligned_alloc(alignment, size);
     }
     if alignment == 0 || !alignment.is_power_of_two() {
-        *libc::__errno_location() = libc::EINVAL;
+        platform::set_errno(libc::EINVAL);
         return std::ptr::null_mut();
     }
     je::mallocx(size, jemalloc::mallocx_align_flags(s.arena_index, alignment))
@@ -91,17 +93,15 @@ pub unsafe extern "C" fn hposix_memalign(
     if !s.use_jemalloc {
         return libc::posix_memalign(memptr, alignment, size);
     }
-    if alignment < std::mem::size_of::<*mut c_void>()
-        || !alignment.is_power_of_two()
-    {
+    if alignment < std::mem::size_of::<*mut c_void>() || !alignment.is_power_of_two() {
         *memptr = std::ptr::null_mut();
         return libc::EINVAL;
     }
-    let old_errno = *libc::__errno_location();
+    let old_errno = platform::errno();
     *memptr = je::mallocx(size, jemalloc::mallocx_align_flags(s.arena_index, alignment));
     if (*memptr).is_null() {
-        let ret = *libc::__errno_location();
-        *libc::__errno_location() = old_errno;
+        let ret = platform::errno();
+        platform::set_errno(old_errno);
         return if ret == 0 { libc::ENOMEM } else { ret };
     }
     0
@@ -128,7 +128,7 @@ pub unsafe extern "C" fn hmunmap(addr: *mut c_void, length: size_t) -> c_int {
 pub unsafe extern "C" fn hmalloc_usable_size(ptr: *mut c_void) -> size_t {
     let s = state::get();
     if !s.use_jemalloc {
-        return libc::malloc_usable_size(ptr);
+        return platform::system_malloc_usable_size(ptr);
     }
     if ptr.is_null() {
         return 0;

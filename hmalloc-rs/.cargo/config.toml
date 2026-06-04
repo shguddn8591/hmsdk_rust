@@ -1,2 +1,4 @@
-[build]
+# Linux only: allow unresolved symbols at cdylib link time
+# (libnuma/libjemalloc are resolved at runtime via LD_PRELOAD/rpath)
+[target.'cfg(target_os = "linux")']
 rustflags = ["-C", "link-arg=-Wl,--allow-shlib-undefined"]
