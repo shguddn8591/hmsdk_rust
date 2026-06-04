@@ -12,8 +12,27 @@ HMSDK consists of multiple git submodules so please download it as follows.
 
     $ git clone --recursive --shallow-submodules https://github.com/skhynix/hmsdk.git
 
+## Building hmalloc (Rust)
+
+The `hmalloc` library has been rewritten in Rust. You need a stable Rust toolchain,
+`libjemalloc-dev`, and `libnuma-dev` installed.
+
+    $ cd hmalloc-rs
+    $ cargo build --release
+
+This produces:
+
+- `hmalloc-rs/target/release/libhmalloc.so` — drop-in replacement for the original C library
+- `hmalloc-rs/target/release/hmctl` — memory policy control tool
+
+The public C API (`hmalloc/include/hmalloc.h`) is fully preserved for compatibility
+with existing applications using `LD_PRELOAD` or direct linking.
+
+    $ HMALLOC_JEMALLOC=1 cargo test -p libhmalloc
+
 ## News
 
+- 2026-06-04: hmalloc rewritten in Rust for memory safety guarantees
 - 2025-11-03: HMSDK v4.0 is released
   - This release is for enhanced bandwidth and capacity expansion support
   - It also includes bwprof tool for system bandwidth profiling
