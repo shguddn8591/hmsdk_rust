@@ -2,3 +2,4 @@
 *.diff
 *.orig
 __pycache__
+hmalloc-rs/target/
