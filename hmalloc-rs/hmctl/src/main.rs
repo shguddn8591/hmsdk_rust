@@ -65,27 +65,29 @@ unsafe fn parse_nodestring(s: &str) -> Option<u64> {
 fn setup_environ(cli: &Cli) {
     use std::env;
 
+    // Priority order mirrors the C hmctl setup_child_environ():
+    // membind > preferred_many > preferred(>=0) > weighted_interleave > interleave
     if let Some(ref nodes) = cli.membind {
         env::set_var("HMALLOC_MPOL_MODE", MPOL_BIND.to_string());
         if let Some(mask) = unsafe { parse_nodestring(nodes) } {
             env::set_var("HMALLOC_NODEMASK", mask.to_string());
         }
-    } else if let Some(node) = cli.preferred {
-        env::set_var("HMALLOC_MPOL_MODE", MPOL_PREFERRED.to_string());
-        let mask: u64 = 1 << node;
-        env::set_var("HMALLOC_NODEMASK", mask.to_string());
     } else if let Some(ref nodes) = cli.preferred_many {
         env::set_var("HMALLOC_MPOL_MODE", MPOL_PREFERRED_MANY.to_string());
         if let Some(mask) = unsafe { parse_nodestring(nodes) } {
             env::set_var("HMALLOC_NODEMASK", mask.to_string());
         }
-    } else if let Some(ref nodes) = cli.interleave {
-        env::set_var("HMALLOC_MPOL_MODE", MPOL_INTERLEAVE.to_string());
+    } else if let Some(node) = cli.preferred.filter(|&n| n >= 0) {
+        env::set_var("HMALLOC_MPOL_MODE", MPOL_PREFERRED.to_string());
+        let mask: u64 = 1u64 << node;
+        env::set_var("HMALLOC_NODEMASK", mask.to_string());
+    } else if let Some(ref nodes) = cli.weighted_interleave {
+        env::set_var("HMALLOC_MPOL_MODE", MPOL_WEIGHTED_INTERLEAVE.to_string());
         if let Some(mask) = unsafe { parse_nodestring(nodes) } {
             env::set_var("HMALLOC_NODEMASK", mask.to_string());
         }
-    } else if let Some(ref nodes) = cli.weighted_interleave {
-        env::set_var("HMALLOC_MPOL_MODE", MPOL_WEIGHTED_INTERLEAVE.to_string());
+    } else if let Some(ref nodes) = cli.interleave {
+        env::set_var("HMALLOC_MPOL_MODE", MPOL_INTERLEAVE.to_string());
         if let Some(mask) = unsafe { parse_nodestring(nodes) } {
             env::set_var("HMALLOC_NODEMASK", mask.to_string());
         }
