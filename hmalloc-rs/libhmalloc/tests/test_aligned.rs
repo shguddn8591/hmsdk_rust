@@ -2,7 +2,7 @@ use hmalloc::{haligned_alloc, hfree, hposix_memalign};
 use libc::c_void;
 
 fn is_aligned(ptr: *mut c_void, alignment: usize) -> bool {
-    (ptr as usize) % alignment == 0
+    (ptr as usize).is_multiple_of(alignment)
 }
 
 #[test]

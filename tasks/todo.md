@@ -6,24 +6,18 @@
 - **macOS에서 `cargo check --tests` 통과 확인됨**
 - **Linux Docker에서 빌드 시도 → 링크 에러 발생 → 수정 후 커밋 직후 세션 한도 초과**
 
-## ❌ 남은 작업
+## 🧪 프로젝트 10단계 테스트 검증 (feature/10-stage-testing)
 
-### Phase 1: Linux 런타임 검증
-- [x] Docker Linux 환경에서 `cargo build -p libhmalloc` 성공 확인
-- [x] Docker Linux 환경에서 `cargo test -p libhmalloc` 13개 테스트 통과 확인
-- [x] Docker Linux 환경에서 `cargo build -p hmctl` 성공 확인
-- [x] `HMALLOC_JEMALLOC=1 cargo test -p libhmalloc` (jemalloc 백엔드) 통과 확인
-      -> jemalloc `create_arena()` 과정에서 발생하는 OnceCell 교착상태(Deadlock) 버그 해결 완료.
-
-### Phase 2: GitHub Actions CI 추가
-- [x] `.github/workflows/ci.yml` 작성
-- [x] Linux 러너 + `apt install libjemalloc-dev libnuma-dev`
-- [x] `cargo check`, `cargo test`, `cargo clippy` 단계
-- [x] jemalloc 백엔드 별도 테스트 단계
-
-### Phase 3: NUMA 멀티노드 통합 테스트 (optional)
-- [ ] 실제 NUMA 2+ 노드 환경에서 mbind 정책 검증
-- [ ] (하드웨어 의존 — CI에서는 스킵 가능)
+- [ ] **Step 1: 기본 빌드 및 정적 분석 재검증** (`cargo check`, `cargo clippy` 경고 Zero 확인)
+- [ ] **Step 2: 환경 변수 파싱 및 NUMA 정책 초기화 한계 테스트** (잘못된 환경변수, 엣지 케이스 주입 시 안전성 확인)
+- [ ] **Step 3: C ABI FFI 경계 예외 테스트** (`NULL` 포인터 해제, 0바이트 할당, 과도한 크기 할당 시 Segfault 방지)
+- [ ] **Step 4: 멀티스레드 동시 할당/해제 스트레스 테스트** (수백 개 스레드 동시 할당 시 스레드 안전성 확인)
+- [ ] **Step 5: 대규모 메모리(Large Allocation) 및 단편화 테스트** (기가바이트 단위 할당 및 해제 반복 시 OOM 및 안정성 검증)
+- [ ] **Step 6: Jemalloc extent hook 정밀 검증** (커스텀 훅이 예상대로 호출되며 정확한 크기와 정렬로 반환하는지 검증)
+- [ ] **Step 7: NUMA `mbind` 노드 바인딩 실제 확인** (BIND, INTERLEAVE 등 정책 적용 후 할당된 메모리 주소의 물리 노드 확인)
+- [ ] **Step 8: 런타임 Deadlock 및 Reentrancy 회귀 테스트** (`OnceCell` 초기화 구간 및 백엔드 락(lock) 경쟁 검증)
+- [ ] **Step 9: `hmctl` 바이너리를 통한 프로세스 생성 및 `LD_PRELOAD` 환경 주입 E2E 테스트**
+- [ ] **Step 10: 메모리 누수 및 UB(Undefined Behavior) 심층 검증** (Valgrind, Miri 또는 ASan을 활용한 정적/동적 메모리 무결성 분석)
 
 ## 🔍 참고
 - macOS에서는 빌드 불가 (libjemalloc/libnuma 의존), `cargo check`까지만 가능

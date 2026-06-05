@@ -17,6 +17,7 @@ pub unsafe fn hmmap_raw(
 }
 
 // Parameterised version used by public hmmap() and tests
+#[allow(clippy::too_many_arguments)]
 pub unsafe fn hmmap_with_policy(
     addr: *mut c_void,
     length: size_t,

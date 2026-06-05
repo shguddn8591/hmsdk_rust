@@ -1,3 +1,5 @@
+#![allow(clippy::missing_safety_doc)]
+
 mod alloc;
 mod env;
 mod jemalloc;
