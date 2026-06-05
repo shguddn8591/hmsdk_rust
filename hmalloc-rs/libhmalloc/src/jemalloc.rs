@@ -57,17 +57,36 @@ static mut EXTENT_HOOKS: je::extent_hooks_t = je::extent_hooks_t {
 };
 
 pub unsafe fn create_arena() -> u32 {
+    let dummy = je::mallocx(1, 0);
+    if !dummy.is_null() {
+        je::dallocx(dummy, 0);
+    }
+
     let mut arena_index: c_uint = 0;
     let mut unsigned_size = std::mem::size_of::<c_uint>();
-    let hooks_ptr: *mut je::extent_hooks_t = std::ptr::addr_of_mut!(EXTENT_HOOKS);
 
+    // Create arena without hooks first
     let err = je::mallctl(
         c"arenas.create".as_ptr(),
         &mut arena_index as *mut _ as *mut c_void,
         &mut unsigned_size,
+        std::ptr::null_mut(),
+        0,
+    );
+    assert_eq!(err, 0, "jemalloc arenas.create failed: {}", err);
+
+    // Now set the extent hooks for the created arena
+    let hooks_ptr: *mut je::extent_hooks_t = std::ptr::addr_of_mut!(EXTENT_HOOKS);
+    let name = std::ffi::CString::new(format!("arena.{}.extent_hooks", arena_index)).unwrap();
+    
+    let err_hooks = je::mallctl(
+        name.as_ptr(),
+        std::ptr::null_mut(),
+        std::ptr::null_mut(),
         &hooks_ptr as *const _ as *mut c_void,
         std::mem::size_of::<*mut je::extent_hooks_t>(),
     );
-    assert_eq!(err, 0, "jemalloc arenas.create failed: {}", err);
+    assert_eq!(err_hooks, 0, "jemalloc setting extent_hooks failed: {}", err_hooks);
+
     arena_index
 }
