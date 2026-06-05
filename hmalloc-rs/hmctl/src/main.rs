@@ -94,6 +94,16 @@ fn setup_environ(cli: &Cli) {
     }
 
     env::set_var("HMALLOC_JEMALLOC", "1");
+
+    // Inject LD_PRELOAD
+    let lib_path = env::var("HMALLOC_LIB_PATH").unwrap_or_else(|_| "libhmalloc.so".to_string());
+    let mut preload = env::var("LD_PRELOAD").unwrap_or_default();
+    if !preload.is_empty() {
+        preload = format!("{}:{}", lib_path, preload);
+    } else {
+        preload = lib_path;
+    }
+    env::set_var("LD_PRELOAD", preload);
 }
 
 fn main() {
