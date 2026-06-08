@@ -19,7 +19,7 @@ fn test_jemalloc_extent_hooks_fragmentation() {
         unsafe {
             let ptr = hmalloc(size);
             assert!(!ptr.is_null());
-            
+
             // Touch it
             let byte_ptr = ptr as *mut u8;
             *byte_ptr = 42;
@@ -39,7 +39,7 @@ fn test_jemalloc_extent_hooks_fragmentation() {
     unsafe {
         let ptr_6mb = hmalloc(6 * 1024 * 1024);
         assert!(!ptr_6mb.is_null());
-        
+
         let byte_ptr = ptr_6mb as *mut u8;
         *byte_ptr = 99;
         *(byte_ptr.add((6 * 1024 * 1024) - 1)) = 99;
@@ -51,7 +51,7 @@ fn test_jemalloc_extent_hooks_fragmentation() {
     unsafe {
         let ptr_realloc = hrealloc(ptrs[0].0, 10 * 1024 * 1024);
         assert!(!ptr_realloc.is_null());
-        
+
         let byte_ptr = ptr_realloc as *mut u8;
         *byte_ptr = 77;
         *(byte_ptr.add((10 * 1024 * 1024) - 1)) = 77;

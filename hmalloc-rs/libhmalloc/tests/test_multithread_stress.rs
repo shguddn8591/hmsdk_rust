@@ -13,7 +13,7 @@ fn test_multithread_stress() {
     for _ in 0..NUM_THREADS {
         let handle = thread::spawn(|| {
             let mut ptrs = Vec::with_capacity(ALLOCS_PER_THREAD);
-            
+
             // Allocate
             for _ in 0..ALLOCS_PER_THREAD {
                 unsafe {

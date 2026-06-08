@@ -1,7 +1,9 @@
 use std::env;
 
 pub fn read_jemalloc() -> bool {
-    env::var("HMALLOC_JEMALLOC").map(|v| v == "1").unwrap_or(false)
+    env::var("HMALLOC_JEMALLOC")
+        .map(|v| v == "1")
+        .unwrap_or(false)
 }
 
 pub fn read_nodemask() -> u64 {
@@ -31,7 +33,7 @@ mod tests {
     #[test]
     fn test_read_jemalloc_edge_cases() {
         let _lock = ENV_MUTEX.lock().unwrap();
-        
+
         env::remove_var("HMALLOC_JEMALLOC");
         assert_eq!(read_jemalloc(), false);
 

@@ -16,3 +16,10 @@ once_cell        = { workspace = true }
 tikv-jemalloc-sys = "0.5"
 
 [build-dependencies]
+
+[[bench]]
+name = "bench_calloc"
+harness = false
+
+[dev-dependencies]
+criterion = "0.8.2"

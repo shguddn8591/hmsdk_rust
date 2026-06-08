@@ -45,15 +45,21 @@ pub unsafe extern "C" fn hfree(ptr: *mut c_void) {
 
 #[no_mangle]
 pub unsafe extern "C" fn hcalloc(nmemb: size_t, size: size_t) -> *mut c_void {
+    let s = state::get();
+    if !s.use_jemalloc {
+        return libc::calloc(nmemb, size);
+    }
+
     let total = match nmemb.checked_mul(size) {
         Some(n) => n,
         None => return std::ptr::null_mut(),
     };
-    let ptr = hmalloc(total);
-    if !ptr.is_null() {
-        libc::memset(ptr, 0, total);
-    }
-    ptr
+
+    // Use jemalloc's MALLOCX_ZERO flag which is much faster than memset
+    je::mallocx(
+        total,
+        jemalloc::mallocx_flags(s.arena_index) | je::MALLOCX_ZERO,
+    )
 }
 
 #[no_mangle]
@@ -74,15 +80,18 @@ pub unsafe extern "C" fn hrealloc(ptr: *mut c_void, size: size_t) -> *mut c_void
 
 #[no_mangle]
 pub unsafe extern "C" fn haligned_alloc(alignment: size_t, size: size_t) -> *mut c_void {
+    if alignment == 0 || !alignment.is_power_of_two() || !size.is_multiple_of(alignment) {
+        platform::set_errno(libc::EINVAL);
+        return std::ptr::null_mut();
+    }
     let s = state::get();
     if !s.use_jemalloc {
         return libc::aligned_alloc(alignment, size);
     }
-    if alignment == 0 || !alignment.is_power_of_two() || size % alignment != 0 {
-        platform::set_errno(libc::EINVAL);
-        return std::ptr::null_mut();
-    }
-    je::mallocx(size, jemalloc::mallocx_align_flags(s.arena_index, alignment))
+    je::mallocx(
+        size,
+        jemalloc::mallocx_align_flags(s.arena_index, alignment),
+    )
 }
 
 #[no_mangle]
@@ -97,11 +106,14 @@ pub unsafe extern "C" fn hposix_memalign(
     }
     let old_errno = platform::errno();
     let void_ptr_size = std::mem::size_of::<*mut c_void>();
-    if alignment == 0 || !alignment.is_power_of_two() || alignment % void_ptr_size != 0 {
+    if alignment == 0 || !alignment.is_power_of_two() || !alignment.is_multiple_of(void_ptr_size) {
         *memptr = std::ptr::null_mut();
         return libc::EINVAL;
     }
-    *memptr = je::mallocx(size, jemalloc::mallocx_align_flags(s.arena_index, alignment));
+    *memptr = je::mallocx(
+        size,
+        jemalloc::mallocx_align_flags(s.arena_index, alignment),
+    );
     if (*memptr).is_null() {
         let ret = platform::errno();
         platform::set_errno(old_errno);

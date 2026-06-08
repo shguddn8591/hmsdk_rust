@@ -30,11 +30,11 @@ fn get_mempolicy_for_ptr(ptr: *mut libc::c_void) -> c_int {
 
 #[test]
 fn test_numa_mbind_policy_applied() {
-    // If not running on Linux with NUMA or the kernel doesn't support it, 
-    // mbind might not actually stick or might fail silently. 
-    // In our Docker, if libnuma is installed and it's a linux kernel, 
+    // If not running on Linux with NUMA or the kernel doesn't support it,
+    // mbind might not actually stick or might fail silently.
+    // In our Docker, if libnuma is installed and it's a linux kernel,
     // we can at least check if we can call the syscall.
-    
+
     // Default malloc policy without explicit environment variables might be MPOL_DEFAULT (0).
     // Let's just do a basic alloc and see if get_mempolicy succeeds.
     unsafe {
@@ -42,14 +42,17 @@ fn test_numa_mbind_policy_applied() {
         let ptr = hmalloc(size);
         if ptr.is_null() {
             let err = std::io::Error::last_os_error().raw_os_error().unwrap_or(0);
-            println!("hmalloc failed (likely mbind rejected in docker). errno: {}", err);
+            println!(
+                "hmalloc failed (likely mbind rejected in docker). errno: {}",
+                err
+            );
             // Ignore the test failure if the environment prevents NUMA bindings
             return;
         }
 
         let byte_ptr = ptr as *mut u8;
         *byte_ptr = 1; // Fault the page to ensure it's physically mapped (mbind usually applies when faulted)
-        
+
         let mode = get_mempolicy_for_ptr(ptr);
         // It should return a valid mode (>= 0). If NUMA is unsupported, it might return -1 (ENOSYS).
         // Since we are in docker, NUMA might be restricted, but the syscall should exist.
