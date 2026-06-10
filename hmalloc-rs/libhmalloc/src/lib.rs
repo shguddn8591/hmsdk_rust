@@ -78,6 +78,7 @@ pub unsafe extern "C" fn haligned_alloc(alignment: size_t, size: size_t) -> *mut
     if !s.use_jemalloc {
         return libc::aligned_alloc(alignment, size);
     }
+    #[allow(clippy::manual_is_multiple_of)]
     if alignment == 0 || !alignment.is_power_of_two() || size % alignment != 0 {
         platform::set_errno(libc::EINVAL);
         return std::ptr::null_mut();
@@ -97,6 +98,7 @@ pub unsafe extern "C" fn hposix_memalign(
     }
     let old_errno = platform::errno();
     let void_ptr_size = std::mem::size_of::<*mut c_void>();
+    #[allow(clippy::manual_is_multiple_of)]
     if alignment == 0 || !alignment.is_power_of_two() || alignment % void_ptr_size != 0 {
         *memptr = std::ptr::null_mut();
         return libc::EINVAL;
