@@ -49,11 +49,11 @@ pub unsafe extern "C" fn hcalloc(nmemb: size_t, size: size_t) -> *mut c_void {
         Some(n) => n,
         None => return std::ptr::null_mut(),
     };
-    let ptr = hmalloc(total);
-    if !ptr.is_null() {
-        libc::memset(ptr, 0, total);
+    let s = state::get();
+    if !s.use_jemalloc {
+        return libc::calloc(nmemb, size);
     }
-    ptr
+    je::mallocx(total, jemalloc::mallocx_zero_flags(s.arena_index))
 }
 
 #[no_mangle]
