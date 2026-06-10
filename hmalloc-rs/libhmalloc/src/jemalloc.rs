@@ -8,6 +8,10 @@ pub fn mallocx_flags(arena: u32) -> c_int {
     je::MALLOCX_ARENA(arena as usize) | je::MALLOCX_TCACHE_NONE
 }
 
+pub fn mallocx_zero_flags(arena: u32) -> c_int {
+    je::MALLOCX_ZERO | mallocx_flags(arena)
+}
+
 // Mirrors C: MALLOCX_ALIGN(alignment) | MALLOCX_ARENA(...) | MALLOCX_TCACHE_NONE
 pub fn mallocx_align_flags(arena: u32, alignment: size_t) -> c_int {
     je::MALLOCX_ALIGN(alignment) | mallocx_flags(arena)
