@@ -13,7 +13,9 @@ pub unsafe fn hmmap_raw(
     // Calling state::get() here during arena creation would cause a deadlock
     // on the OnceCell because extent_alloc runs within init_state.
     let (nodemask, mpol_mode, maxnode) = crate::state::get_policy();
-    hmmap_with_policy(addr, length, prot, flags, fd, offset, nodemask, mpol_mode, maxnode)
+    hmmap_with_policy(
+        addr, length, prot, flags, fd, offset, nodemask, mpol_mode, maxnode,
+    )
 }
 
 // Parameterised version used by public hmmap() and tests

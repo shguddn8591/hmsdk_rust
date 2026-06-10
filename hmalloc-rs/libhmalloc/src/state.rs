@@ -41,5 +41,8 @@ fn init_state() -> AllocState {
         }
     }
 
-    AllocState { use_jemalloc, arena_index }
+    AllocState {
+        use_jemalloc,
+        arena_index,
+    }
 }

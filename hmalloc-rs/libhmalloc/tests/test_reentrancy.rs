@@ -7,7 +7,7 @@ fn test_reentrancy_and_deadlock_regression() {
     // This test ensures that when multiple threads attempt to call hmalloc
     // for the very first time (which triggers OnceCell initialization of AllocState
     // and potentially jemalloc bootstrapping), they do not deadlock.
-    
+
     let num_threads = 20;
     let barrier = Arc::new(Barrier::new(num_threads));
     let mut handles = vec![];

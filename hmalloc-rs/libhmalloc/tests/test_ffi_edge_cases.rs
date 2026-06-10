@@ -1,5 +1,5 @@
-use std::ptr;
 use libc::{c_void, EINVAL};
+use std::ptr;
 
 use hmalloc::{
     haligned_alloc, hcalloc, hfree, hmalloc, hmalloc_usable_size, hposix_memalign, hrealloc,
@@ -76,7 +76,7 @@ fn test_hmalloc_out_of_memory() {
 fn test_hposix_memalign_edge_cases() {
     unsafe {
         let mut ptr: *mut c_void = ptr::null_mut();
-        
+
         // Alignment not a power of two
         let ret = hposix_memalign(&mut ptr, 15, 100);
         assert_eq!(ret, EINVAL);
