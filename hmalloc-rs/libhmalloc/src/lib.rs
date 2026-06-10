@@ -106,7 +106,7 @@ pub unsafe extern "C" fn hposix_memalign(
     }
     let old_errno = platform::errno();
     let void_ptr_size = std::mem::size_of::<*mut c_void>();
-    if alignment == 0 || !alignment.is_power_of_two() || alignment % void_ptr_size != 0 {
+    if alignment == 0 || !alignment.is_power_of_two() || !alignment.is_multiple_of(void_ptr_size) {
         *memptr = std::ptr::null_mut();
         return libc::EINVAL;
     }
