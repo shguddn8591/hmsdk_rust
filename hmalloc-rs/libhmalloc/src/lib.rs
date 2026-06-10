@@ -80,7 +80,7 @@ pub unsafe extern "C" fn hrealloc(ptr: *mut c_void, size: size_t) -> *mut c_void
 
 #[no_mangle]
 pub unsafe extern "C" fn haligned_alloc(alignment: size_t, size: size_t) -> *mut c_void {
-    if alignment == 0 || !alignment.is_power_of_two() || size % alignment != 0 {
+    if alignment == 0 || !alignment.is_power_of_two() || !size.is_multiple_of(alignment) {
         platform::set_errno(libc::EINVAL);
         return std::ptr::null_mut();
     }
